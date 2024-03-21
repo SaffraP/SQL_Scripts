@@ -1,0 +1,5 @@
+-- Replace INVOICE_ID with the column to count values from 
+SELECT INVOICE_ID, COUNT(INVOICE_ID) AS value_count
+FROM SILVER.ODS_CustomerInvoiceItem
+GROUP BY INVOICE_ID
+HAVING COUNT(INVOICE_ID) > 1;
