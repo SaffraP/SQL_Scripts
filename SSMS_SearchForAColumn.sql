@@ -9,4 +9,14 @@ WHERE ac.name like '%trantype%' --replace this with the column name you're looki
 order by 1, 2, 3
 
 
+--Alt script
 
+SELECT 
+    t.name AS TableName,
+    c.name AS ColumnName
+FROM sys.tables AS t
+INNER JOIN sys.columns AS c ON t.object_id = c.object_id
+WHERE c.name LIKE '%OfficeID%'
+ORDER BY 
+    TableName,
+    ColumnName;
