@@ -1,2 +1,4 @@
-select count(distinct ID) 
-from dbo.TableName;
+select count(*) from dbo.TableName;
+
+-- Option to count distinct values in a col
+select count(distinct ID) from dbo.TableName;
