@@ -1,0 +1,7 @@
+-- Display the data type of each column in a given schema.table
+
+SELECT COLUMN_NAME, DATA_TYPE
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_SCHEMA = 'BRONZE'
+  AND TABLE_NAME = 'cosential_companies'
+ORDER BY ORDINAL_POSITION;
