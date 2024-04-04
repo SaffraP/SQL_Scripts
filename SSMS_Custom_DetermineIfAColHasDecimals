@@ -1,0 +1,9 @@
+-- Use case: When a dataset has lots of columns with xx.0000000000 or xx.xxxxxxxxxx
+-- If there are fractional values, it returns 'cast as float'. If there are only whole numbers it returns 'cast as int/bigint'
+SELECT CASE
+         WHEN EXISTS(SELECT 1
+                     FROM GOLD.AccountsReceivableTransaction
+                     WHERE Addon % 1 > 0)
+         THEN 'cast as float'
+         ELSE 'cast as int/bigint'
+       END AS ResultCheck;
