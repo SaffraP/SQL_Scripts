@@ -1,0 +1,32 @@
+------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------
+-- This lists all the columns that only have null values 
+
+DECLARE @TableName AS NVARCHAR(128) = 'BRONZE.cosential_opportunities';
+DECLARE @Sql AS NVARCHAR(MAX) = '';
+
+SELECT @Sql = @Sql + 'SELECT ''' + COLUMN_NAME + ''' AS ColumnName 
+    FROM ' + @TableName + ' 
+    WHERE ' + COLUMN_NAME + ' IS NOT NULL 
+    HAVING COUNT(*) = 0 UNION ALL '
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_SCHEMA + '.' + TABLE_NAME = @TableName;
+
+SET @Sql = LEFT(@Sql, LEN(@Sql) - 10);
+
+EXEC sp_executesql @Sql;
+------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------
+-- This lists all the columns that have at least one not null value
+
+DECLARE @TableName AS NVARCHAR(128) = 'BRONZE.cosential_opportunities';
+DECLARE @Sql AS NVARCHAR(MAX) = '';
+
+SELECT @Sql = @Sql + 'IF EXISTS (SELECT 1 FROM ' + @TableName + ' WHERE ' + COLUMN_NAME + ' IS NOT NULL) 
+    BEGIN 
+        PRINT ''' + COLUMN_NAME + ''' 
+    END '
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_SCHEMA + '.' + TABLE_NAME = @TableName;
+
+EXEC sp_executesql @Sql;
