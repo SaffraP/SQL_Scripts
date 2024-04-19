@@ -1,0 +1,88 @@
+CREATE PROCEDURE spDW_RowCountComparison
+
+AS
+BEGIN 
+
+-- This requires that a mapping table was already created called dbo.TableMapping that shows the relationships between bronze and gold table names. 
+
+
+DROP TABLE IF EXISTS dbo.DW_RowCountComparison;
+--select * from dbo.DW_RowCountComparison order by [Diff from BRONZE] desc
+
+CREATE TABLE dbo.DW_RowCountComparison (
+    [BRONZE Table] varchar(250),
+    [BRONZE Full Load Rowcounts] int,
+    [GOLD Table] varchar(250),
+    [GOLD Full Load Rowcounts] int,
+    [Diff from BRONZE] varchar(250),
+    [Full Load DateTime] DATETIME
+	--[GOLD Incremental Rowcount] int,
+	--[INCR DateTime] DATETIME,
+	--[INCR Row Increase] int, --comparing full load gold to incr load gold
+	--[MaxBatchID] int,
+	--[CurrentRowCountVariation] float
+)
+
+;WITH BronzeRowCounts AS (
+    SELECT 
+        t.NAME AS bronze_table_name,
+        SUM(p.rows) AS bronze_row_count
+    FROM 
+        sys.tables t
+    INNER JOIN 
+        sys.partitions p ON t.object_id = p.OBJECT_ID
+    WHERE 
+        t.schema_id = SCHEMA_ID('BRONZE')
+        AND p.index_id IN (0, 1)
+    GROUP BY 
+        t.NAME
+),
+GoldRowCounts AS (
+    SELECT 
+        t.NAME AS gold_table_name,
+        SUM(p.rows) AS gold_row_count
+    FROM 
+        sys.tables t
+    INNER JOIN 
+        sys.partitions p ON t.object_id = p.OBJECT_ID
+    WHERE 
+        t.schema_id = SCHEMA_ID('GOLD')
+        AND p.index_id IN (0, 1)
+    GROUP BY 
+        t.NAME
+),
+DiffTable AS (
+    SELECT
+        br.bronze_table_name,
+        gr.gold_table_name,
+        br.bronze_row_count,
+        gr.gold_row_count,
+        ABS(bronze_row_count - gold_row_count) * 100.0 / NULLIF(gold_row_count, 0) AS diff
+    FROM
+        dbo.DW_TableMapping tm
+        LEFT JOIN BronzeRowCounts br ON tm.bronze_table_name = br.bronze_table_name
+        LEFT JOIN GoldRowCounts gr ON tm.gold_table_name = gr.gold_table_name
+),
+MaxDecimalPlaces AS (
+    SELECT MAX(LEN(FORMAT(diff, '0.############'))) AS max_decimal_places
+    FROM DiffTable
+)
+INSERT INTO dbo.DW_RowCountComparison ([BRONZE Table], [BRONZE Full Load Rowcounts], [GOLD Table], [GOLD Full Load Rowcounts], [Diff from BRONZE], [Full Load DateTime])
+SELECT
+    CONCAT('BRONZE.', dt.bronze_table_name) AS [BRONZE Table],
+    dt.bronze_row_count AS [BRONZE Full Load Rowcounts],
+    CONCAT('GOLD.', dt.gold_table_name) AS [GOLD Table],
+    dt.gold_row_count AS [GOLD Full Load Rowcounts],
+    --CONCAT(IIF(dt.diff >= 0, FORMAT(ROUND(dt.diff, 2), '0.##'), FORMAT(ROUND(dt.diff, 2), '-0.##')), '%') AS [Diff from BRONZE],
+	CONCAT(IIF(dt.diff >= 0, FORMAT(ROUND(dt.diff, 2), '0.##'), FORMAT(ROUND(dt.diff, 2), '-0.##')), '%') AS [Diff from BRONZE],
+	--(GETDATE() AT TIME ZONE 'UTC' AT TIME ZONE 'Mountain Standard Time') AS [Full Load Run DateTime MST]
+	GETDATE() AS [Full Load DateTime]
+FROM
+    DiffTable dt
+CROSS JOIN
+    MaxDecimalPlaces md;
+
+
+
+
+END 
