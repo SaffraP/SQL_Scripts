@@ -1,0 +1,12 @@
+SELECT 
+    t.name AS TableName,
+    p.rows AS TotalRows
+FROM 
+    sys.tables AS t
+INNER JOIN 
+    sys.partitions AS p ON t.object_id = p.object_id
+WHERE 
+    (t.name LIKE 'procore_%' OR t.schema_id = SCHEMA_ID('procore20240327')) 
+    AND p.index_id IN (0, 1) -- 0: Heap, 1: Clustered Index
+ORDER BY 
+    t.name;
