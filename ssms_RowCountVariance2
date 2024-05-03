@@ -1,12 +1,17 @@
+-- Prints the schma, table name, and row counts 
+-- Filters to only tables with a specific text or in a specific schema
 SELECT 
+    s.name AS SchemaName,
     t.name AS TableName,
     p.rows AS TotalRows
 FROM 
-    sys.tables AS t
+    sys.schemas AS s
+INNER JOIN 
+    sys.tables AS t ON s.schema_id = t.schema_id
 INNER JOIN 
     sys.partitions AS p ON t.object_id = p.object_id
 WHERE 
-    (t.name LIKE 'procore_%' OR t.schema_id = SCHEMA_ID('procore20240327')) 
+    (t.name LIKE 'procore_%' OR s.name = 'procore20240327') 
     AND p.index_id IN (0, 1) -- 0: Heap, 1: Clustered Index
 ORDER BY 
-    t.name;
+    s.name, t.name;
