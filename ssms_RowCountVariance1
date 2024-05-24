@@ -4,6 +4,9 @@ AS
 BEGIN 
 
 -- This requires that a mapping table was already created called dbo.TableMapping that shows the relationships between bronze and gold table names. 
+-- See the bottom part of this script for dbo.TableMapping script. 
+-- dbo.TableMapping should include just the table name, not the schemas. 
+
 
 
 DROP TABLE IF EXISTS dbo.DW_RowCountComparison;
@@ -83,6 +86,37 @@ CROSS JOIN
     MaxDecimalPlaces md;
 
 
-
-
 END 
+
+
+----------------------------------------------------------------------------------
+----------------------------------------------------------------------------------
+-- dbo.TableMapping script
+----------------------------------------------------------------------------------
+----------------------------------------------------------------------------------
+
+--CREATE PROCEDURE [dbo].[spDW_TableMapping]
+--AS
+
+--DROP TABLE IF EXISTS dbo.DW_TableMapping;
+
+--CREATE TABLE dbo.DW_TableMapping (
+--	datasource VARCHAR(50),
+--	source_table_schema VARCHAR(50),
+--	source_table_name VARCHAR(50),
+--    bronze_table_name VARCHAR(50),
+--	silver_table_name VARCHAR(50),
+--    gold_table_name VARCHAR(50),
+--	);
+
+--INSERT INTO dbo.DW_TableMapping (datasource, source_table_schema, source_table_name, bronze_table_name, silver_table_name, gold_table_name)
+--VALUES
+-- ('Sage', 'dbo', 'APM_MASTER__INVOICE', 'sage_APM_MASTER__INVOICE', 'sage_APM_MASTER__INVOICE', 'sage_AP_Invoice')
+--,('Sage', 'dbo', 'ARM_MASTER__CUSTOMER', 'sage_ARM_MASTER__CUSTOMER', 'sage_ARM_MASTER__CUSTOMER', 'sage_AR_Customer')
+--,('Sage', 'dbo', 'ART_CURRENT__TRANSACTION', 'sage_ART_CURRENT__TRANSACTION', 'sage_ART_CURRENT__TRANSACTION', 'sage_AR_Transaction')
+--,('', '', '', '', 'sage_APM_CURRENT__TRANSACTION', '')
+--,('Sage', 'dbo', 'GLM_MASTER__ACCOUNT', 'sage_GLM_MASTER__ACCOUNT', 'sage_GLM_MASTER__ACCOUNT', 'sage_GL_Account')
+--,('Sage', 'dbo', 'JCT_CURRENT__TRANSACTION', 'sage_JCT_CURRENT__TRANSACTION', 'sage_JCT_CURRENT__TRANSACTION', 'sage_JC_Transaction')
+--;
+
+--select top 1000 * from dbo.DW_TableMapping
